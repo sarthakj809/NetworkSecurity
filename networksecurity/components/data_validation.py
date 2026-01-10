@@ -37,6 +37,29 @@ class DataValidation:
             return False
         except Exception as e:
             raise NetworkSecurityException(e,sys)
+        
+    def is_num_col(self, dataframe: pd.DataFrame) -> bool:
+        try:
+            numerical_columns = self.schema_config.get("numerical_columns", [])
+            logging.info(f"Numerical columns from schema: {numerical_columns}")
+
+            missing_numerical_columns = []
+
+            for col in numerical_columns:
+                if col not in dataframe.columns:
+                    missing_numerical_columns.append(col)
+
+            if missing_numerical_columns:
+                logging.info(
+                    f"Missing or non-numeric columns: {missing_numerical_columns}"
+                )
+                return False
+
+            return True
+
+        except Exception as e:
+            raise NetworkSecurityException(e, sys)
+
     
     def detect_dataset_drift(self,base_df,current_df,threshold=0.05)->bool:
         try:
@@ -77,11 +100,20 @@ class DataValidation:
             ## validate number of columns
             status=self.validate_number_of_columns(dataframe=train_dataframe)
             if not status:
-                error_message=f"{error_message} Train Dataframe does not contain all columns.\n"
+                error_message=f"Train Dataframe does not contain all columns.\n"
             
             status=self.validate_number_of_columns(dataframe=test_dataframe)
             if not status:
-                error_message=f"{error_message} Test Dataframe does not contain all columns.\n"
+                error_message=f"Test Dataframe does not contain all columns.\n"
+                
+            ## checking if numerical columns exist
+            status=self.is_num_col(dataframe=train_dataframe)
+            if not status:
+                error_message=f"Train dataframe does not contain all numerical columns.\n"
+            
+            status=self.is_num_col(dataframe=test_dataframe)
+            if not status:
+                error_message=f"Test dataframe does not contain all numerical columns.\n"        
             
             ## let us check data drift
             status=self.detect_dataset_drift(base_df=train_dataframe,current_df=test_dataframe)

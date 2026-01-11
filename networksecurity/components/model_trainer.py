@@ -14,6 +14,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier,GradientBoostingClassifier,RandomForestClassifier
 import mlflow
+import dagshub
+dagshub.init(repo_owner='sarthakj809', repo_name='NetworkSecurity', mlflow=True)
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
@@ -37,25 +39,25 @@ class ModelTrainer:
     def train_model(self,x_train,y_train,x_test,y_test):
         ## training and evaluation in the same function
         models={
-            "RandomForest": RandomForestClassifier(verbose=1),
+            "Random Forest": RandomForestClassifier(verbose=1),
             "Decision Tree": DecisionTreeClassifier(),
             "Gradient Boosting":GradientBoostingClassifier(verbose=1),
             "Logistic Regression":LogisticRegression(verbose=1),
-            "Adaboost":AdaBoostClassifier(),
+            "AdaBoost":AdaBoostClassifier(),
             
         }
         
         params={
-            "Decision Tree": {
-                'criterion':['gini', 'entropy', 'log_loss'],
-                # 'splitter':['best','random'],
-                # 'max_features':['sqrt','log2'],
-            },
             "Random Forest":{
                 # 'criterion':['gini', 'entropy', 'log_loss'],
                 
                 # 'max_features':['sqrt','log2',None],
                 'n_estimators': [8,16,32,128,256]
+            },
+            "Decision Tree": {
+                'criterion':['gini', 'entropy', 'log_loss'],
+                # 'splitter':['best','random'],
+                # 'max_features':['sqrt','log2'],
             },
             "Gradient Boosting":{
                 # 'loss':['log_loss', 'exponential'],
@@ -105,8 +107,9 @@ class ModelTrainer:
 
         Network_Model=NetworkModel(preprocessor=preprocessor,model=best_model)
         save_object(self.model_trainer_config.trained_model_file_path,obj=NetworkModel)
-        # #model pusher
-        # save_object("final_model/model.pkl",best_model)
+        
+        #model pusher
+        save_object("final_models/model.pkl",best_model)
         
 
         ## Model Trainer Artifact
@@ -134,7 +137,7 @@ class ModelTrainer:
                 test_arr[:,-1],
             )
             
-            model=self.train_model(x_train,y_train)
+            model=self.train_model(x_train,y_train,x_test,y_test)
         
         except Exception as e:
             raise NetworkSecurityException(e,sys) 

@@ -125,7 +125,7 @@ class DataValidation:
             
             data_validation_artifact=DataValidationAritfact(
                 validation_status=status,
-                valid_train_file_path=self.data_ingestion_artifact.train_file_path,
+                valid_train_file_path=self.data_ingestion_artifact.trained_file_path,
                 valid_test_file_path=self.data_ingestion_artifact.test_file_path,
                 invalid_train_file_path=None,
                 invalid_test_file_path=None,
